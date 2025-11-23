@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>算24点 - Math 24 Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+        }
+
+        .card:hover:not(.used) {
+            transform: translateY(-10px) scale(1.05);
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+        }
+
+        .card.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .expression-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .expression-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .expression-display {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.5em;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            color: #333;
+            flex: 1;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn-confirm:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.95);
+        }
+
+        .operators {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .operator-btn,
+        .number-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 50px;
+        }
+
+        .operator-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .operator-btn:active {
+            transform: scale(0.95);
+        }
+
+        .number-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .number-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .number-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .result-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            display: block;
+        }
+
+        .result-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            display: block;
+        }
+
+        .solutions {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+            display: none;
+        }
+
+        .solutions h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .solutions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .solutions li {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Animation overlay - prevents page shake */
+        .animation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Fireworks animation for correct answer */
+        .fireworks-overlay {
+            background: rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        @keyframes fireworkRise {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-600px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Encouraging popup for wrong answer */
+        .encourage-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .encourage-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 60px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: popupBounce 0.6s ease-out;
+            pointer-events: auto;
+        }
+
+        @keyframes popupBounce {
+            0% {
+                transform: scale(0.3) translateY(100px);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05) translateY(0);
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .encourage-popup .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .encourage-popup .message {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .encourage-popup .submessage {
+            font-size: 20px;
+            color: #666;
+        }
+
+        .encourage-popup button {
+            margin-top: 25px;
+            padding: 12px 30px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .encourage-popup button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <h1>🎴 算24点 🎴</h1>
+        <p class="subtitle">使用四个数字和四则运算，得到结果24！</p>
+
+        <div class="cards-container" id="cardsContainer"></div>
+
+        <div class="expression-area">
+            <div class="expression-row">
+                <div class="expression-display" id="expressionDisplay">点击扑克牌和运算符开始</div>
+                <button class="btn-confirm" onclick="checkAnswer()">确认</button>
+            </div>
+
+            <div class="operators">
+                <button class="operator-btn" onclick="addOperator('(')">(</button>
+                <button class="operator-btn" onclick="addOperator(')')">)</button>
+                <button class="operator-btn" onclick="addOperator('+')">+</button>
+                <button class="operator-btn" onclick="addOperator('-')">−</button>
+                <button class="operator-btn" onclick="addOperator('*')">×</button>
+                <button class="operator-btn" onclick="addOperator('/')">÷</button>
+                <button class="operator-btn" onclick="backspace()">⌫</button>
+                <button class="operator-btn" onclick="clearExpression()">清空</button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-warning" onclick="showHint()">💡 查看提示</button>
+                <button class="btn btn-danger" onclick="newGame()">🔄 新游戏</button>
+            </div>
+        </div>
+
+        <div class="result-message" id="resultMessage"></div>
+        <div class="solutions" id="solutionsDiv"></div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="solvedCount">0</div>
+                <div class="stat-label">已解决</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="attemptCount">0</div>
+                <div class="stat-label">尝试次数</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCards = [];
+        let currentExpression = '';
+        let usedNumbers = [];
+        let solvedCount = parseInt(localStorage.getItem('solvedCount') || '0');
+        let attemptCount = parseInt(localStorage.getItem('attemptCount') || '0');
+        let allSolutions = [];
+
+        // Initialize game
+        document.getElementById('solvedCount').textContent = solvedCount;
+        document.getElementById('attemptCount').textContent = attemptCount;
+
+        // Create SVG card (minimalist design)
+        function createCard(number) {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '110');
+            svg.setAttribute('height', '154');
+            svg.setAttribute('viewBox', '0 0 110 154');
+            svg.classList.add('card');
+
+            // Determine suit based on number
+            const suits = ['♠', '♥', '♣', '♦'];
+            const colors = ['#000', '#e74c3c', '#000', '#e74c3c'];
+            const suitIndex = (number - 1) % 4;
+            const suit = suits[suitIndex];
+            const color = colors[suitIndex];
+
+            // Card background - clean white
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('width', '110');
+            rect.setAttribute('height', '154');
+            rect.setAttribute('rx', '8');
+            rect.setAttribute('fill', '#ffffff');
+            rect.setAttribute('stroke', '#2c3e50');
+            rect.setAttribute('stroke-width', '2.5');
+            svg.appendChild(rect);
+
+            // Top-left corner: number
+            const topNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            topNumber.setAttribute('x', '15');
+            topNumber.setAttribute('y', '28');
+            topNumber.setAttribute('font-size', '24');
+            topNumber.setAttribute('font-weight', 'bold');
+            topNumber.setAttribute('fill', color);
+            topNumber.setAttribute('font-family', 'Arial, sans-serif');
+            topNumber.textContent = number;
+            svg.appendChild(topNumber);
+
+            // Top-left corner: suit (below number)
+            const topSuit = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            topSuit.setAttribute('x', '15');
+            topSuit.setAttribute('y', '50');
+            topSuit.setAttribute('font-size', '22');
+            topSuit.setAttribute('fill', color);
+            topSuit.textContent = suit;
+            svg.appendChild(topSuit);
+
+            // Center: large number
+            const centerNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            centerNumber.setAttribute('x', '55');
+            centerNumber.setAttribute('y', '90');
+            centerNumber.setAttribute('font-size', '48');
+            centerNumber.setAttribute('font-weight', 'bold');
+            centerNumber.setAttribute('fill', color);
+            centerNumber.setAttribute('text-anchor', 'middle');
+            centerNumber.setAttribute('font-family', 'Arial, sans-serif');
+            centerNumber.textContent = number;
+            svg.appendChild(centerNumber);
+
+            // Center: suit symbol (below number)
+            const centerSuit = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            centerSuit.setAttribute('x', '55');
+            centerSuit.setAttribute('y', '120');
+            centerSuit.setAttribute('font-size', '32');
+            centerSuit.setAttribute('fill', color);
+            centerSuit.setAttribute('text-anchor', 'middle');
+            centerSuit.textContent = suit;
+            svg.appendChild(centerSuit);
+
+            // Bottom-right corner: rotated number
+            const bottomNumber = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            bottomNumber.setAttribute('x', '95');
+            bottomNumber.setAttribute('y', '140');
+            bottomNumber.setAttribute('font-size', '24');
+            bottomNumber.setAttribute('font-weight', 'bold');
+            bottomNumber.setAttribute('fill', color);
+            bottomNumber.setAttribute('text-anchor', 'end');
+            bottomNumber.setAttribute('font-family', 'Arial, sans-serif');
+            bottomNumber.setAttribute('transform', 'rotate(180, 87, 126)');
+            bottomNumber.textContent = number;
+            svg.appendChild(bottomNumber);
+
+            // Bottom-right corner: rotated suit
+            const bottomSuit = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            bottomSuit.setAttribute('x', '95');
+            bottomSuit.setAttribute('y', '118');
+            bottomSuit.setAttribute('font-size', '22');
+            bottomSuit.setAttribute('fill', color);
+            bottomSuit.setAttribute('text-anchor', 'end');
+            bottomSuit.setAttribute('transform', 'rotate(180, 87, 104)');
+            bottomSuit.textContent = suit;
+            svg.appendChild(bottomSuit);
+
+            return svg;
+        }
+
+        // Deal new cards
+        function dealCards() {
+            currentCards = [];
+            for (let i = 0; i < 4; i++) {
+                currentCards.push(Math.floor(Math.random() * 10) + 1);
+            }
+            usedNumbers = new Array(4).fill(false);
+
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            currentCards.forEach((num, index) => {
+                const cardWrapper = document.createElement('div');
+                const card = createCard(num);
+                cardWrapper.appendChild(card);
+                cardWrapper.onclick = () => addNumber(num, index);
+                container.appendChild(cardWrapper);
+            });
+
+            findAllSolutions();
+        }
+
+        // Update card visual state
+        function updateCardStates() {
+            const container = document.getElementById('cardsContainer');
+            const cards = container.children;
+
+            for (let i = 0; i < cards.length; i++) {
+                const svg = cards[i].querySelector('svg');
+                if (usedNumbers[i]) {
+                    svg.classList.add('used');
+                } else {
+                    svg.classList.remove('used');
+                }
+            }
+        }
+
+        // Add number to expression
+        function addNumber(num, index) {
+            if (!usedNumbers[index]) {
+                currentExpression += num;
+                usedNumbers[index] = true;
+                updateDisplay();
+                updateCardStates();
+            }
+        }
+
+        // Add operator to expression
+        function addOperator(op) {
+            currentExpression += op;
+            updateDisplay();
+        }
+
+        // Backspace
+        function backspace() {
+            if (currentExpression.length > 0) {
+                const lastChar = currentExpression[currentExpression.length - 1];
+                currentExpression = currentExpression.slice(0, -1);
+
+                // If it was a number, mark it as unused
+                if (!isNaN(lastChar)) {
+                    const num = parseInt(lastChar);
+                    // Find the first used card with this number
+                    for (let i = currentCards.length - 1; i >= 0; i--) {
+                        if (currentCards[i] === num && usedNumbers[i]) {
+                            usedNumbers[i] = false;
+                            break;
+                        }
+                    }
+                }
+
+                updateDisplay();
+                updateCardStates();
+            }
+        }
+
+        // Clear expression
+        function clearExpression() {
+            currentExpression = '';
+            usedNumbers = new Array(4).fill(false);
+            updateDisplay();
+            updateCardStates();
+            hideMessages();
+        }
+
+        // Update display
+        function updateDisplay() {
+            const display = document.getElementById('expressionDisplay');
+            display.textContent = currentExpression || '点击数字和运算符开始';
+        }
+
+        // Check if all numbers are used
+        function allNumbersUsed() {
+            return usedNumbers.every(used => used);
+        }
+
+        // Evaluate expression safely
+        function evaluateExpression(expr) {
+            try {
+                // Replace visual operators with JavaScript operators
+                expr = expr.replace(/×/g, '*').replace(/➗/g, '/').replace(/÷/g, '/');
+
+                // Check for valid characters only
+                if (!/^[0-9+\-*/().\s]+$/.test(expr)) {
+                    return null;
+                }
+
+                // Use Function constructor for safe evaluation
+                const result = new Function('return ' + expr)();
+                return result;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Check answer
+        function checkAnswer() {
+            hideMessages();
+
+            if (!currentExpression) {
+                showMessage('请输入表达式！', 'error');
+                return;
+            }
+
+            if (!allNumbersUsed()) {
+                showMessage('请使用所有四个数字！', 'error');
+                showEncouragePopup('请使用所有四个数字！');
+                return;
+            }
+
+            attemptCount++;
+            localStorage.setItem('attemptCount', attemptCount);
+            document.getElementById('attemptCount').textContent = attemptCount;
+
+            const result = evaluateExpression(currentExpression);
+
+            if (result === null) {
+                showMessage('表达式有误，请检查！', 'error');
+                showEncouragePopup('表达式有误，请检查！');
+            } else if (Math.abs(result - 24) < 0.0001) {
+                showMessage(`🎉 恭喜！答案正确！${currentExpression} = 24`, 'success');
+                solvedCount++;
+                localStorage.setItem('solvedCount', solvedCount);
+                document.getElementById('solvedCount').textContent = solvedCount;
+
+                // Fireworks effect from bottom
+                createFireworksPopup();
+            } else {
+                showMessage(`❌ 结果是 ${result.toFixed(2)}，不等于 24。继续努力！`, 'error');
+                showEncouragePopup(`结果是 ${result.toFixed(2)}，不等于 24`);
+            }
+        }
+
+        // Create fireworks popup effect (from bottom to top)
+        function createFireworksPopup() {
+            const overlay = document.createElement('div');
+            overlay.className = 'animation-overlay fireworks-overlay';
+            document.body.appendChild(overlay);
+
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff1493'];
+
+            // Create fireworks launching from bottom
+            for (let f = 0; f < 8; f++) {
+                setTimeout(() => {
+                    const startX = Math.random() * window.innerWidth;
+                    const startY = window.innerHeight;
+                    const endY = Math.random() * (window.innerHeight * 0.4) + 100;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+
+                    // Create rising particle
+                    const riser = document.createElement('div');
+                    riser.className = 'firework';
+                    riser.style.left = startX + 'px';
+                    riser.style.top = startY + 'px';
+                    riser.style.backgroundColor = color;
+                    riser.style.animation = 'fireworkRise 0.8s ease-out forwards';
+                    overlay.appendChild(riser);
+
+                    // Create explosion at the end
+                    setTimeout(() => {
+                        for (let i = 0; i < 40; i++) {
+                            const particle = document.createElement('div');
+                            particle.className = 'firework';
+                            particle.style.left = startX + 'px';
+                            particle.style.top = endY + 'px';
+                            particle.style.backgroundColor = color;
+
+                            const angle = (Math.PI * 2 * i) / 40;
+                            const velocity = 80 + Math.random() * 120;
+                            const tx = Math.cos(angle) * velocity;
+                            const ty = Math.sin(angle) * velocity;
+
+                            particle.style.setProperty('--tx', tx + 'px');
+                            particle.style.setProperty('--ty', ty + 'px');
+                            particle.style.animation = 'explode 1.2s ease-out forwards';
+
+                            overlay.appendChild(particle);
+                        }
+                    }, 800);
+                }, f * 150);
+            }
+
+            // Remove overlay after animation
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+            }, 3000);
+        }
+
+        // Show encouraging popup
+        function showEncouragePopup(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'animation-overlay encourage-overlay';
+
+            const popup = document.createElement('div');
+            popup.className = 'encourage-popup';
+            popup.innerHTML = `
+                <div class="emoji">💪</div>
+                <div class="message">${message}</div>
+                <div class="submessage">继续努力！</div>
+                <button onclick="this.closest('.animation-overlay').remove()">知道了</button>
+            `;
+
+            overlay.appendChild(popup);
+            document.body.appendChild(overlay);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            }, 3000);
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const msg = document.getElementById('resultMessage');
+            msg.textContent = text;
+            msg.className = 'result-message ' + type;
+        }
+
+        // Hide messages
+        function hideMessages() {
+            document.getElementById('resultMessage').className = 'result-message';
+            document.getElementById('solutionsDiv').style.display = 'none';
+        }
+
+        // Find all solutions using brute force
+        function findAllSolutions() {
+            allSolutions = [];
+            const numbers = [...currentCards];
+            const operators = ['+', '-', '*', '/'];
+
+            // Generate all permutations of numbers
+            const permutations = getPermutations(numbers);
+
+            permutations.forEach(perm => {
+                // Try all operator combinations
+                for (let op1 of operators) {
+                    for (let op2 of operators) {
+                        for (let op3 of operators) {
+                            // Try different bracket patterns
+                            const patterns = [
+                                `${perm[0]}${op1}${perm[1]}${op2}${perm[2]}${op3}${perm[3]}`,
+                                `(${perm[0]}${op1}${perm[1]})${op2}${perm[2]}${op3}${perm[3]}`,
+                                `${perm[0]}${op1}(${perm[1]}${op2}${perm[2]})${op3}${perm[3]}`,
+                                `${perm[0]}${op1}${perm[1]}${op2}(${perm[2]}${op3}${perm[3]})`,
+                                `(${perm[0]}${op1}${perm[1]}${op2}${perm[2]})${op3}${perm[3]}`,
+                                `${perm[0]}${op1}(${perm[1]}${op2}${perm[2]}${op3}${perm[3]})`,
+                                `((${perm[0]}${op1}${perm[1]})${op2}${perm[2]})${op3}${perm[3]}`,
+                                `(${perm[0]}${op1}(${perm[1]}${op2}${perm[2]}))${op3}${perm[3]}`,
+                                `(${perm[0]}${op1}${perm[1]})${op2}(${perm[2]}${op3}${perm[3]})`,
+                            ];
+
+                            patterns.forEach(expr => {
+                                const result = evaluateExpression(expr);
+                                if (result !== null && Math.abs(result - 24) < 0.0001) {
+                                    const displayExpr = expr.replace(/\*/g, '×').replace(/\//g, '÷');
+                                    if (!allSolutions.includes(displayExpr)) {
+                                        allSolutions.push(displayExpr);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        // Get all permutations of array
+        function getPermutations(arr) {
+            if (arr.length <= 1) return [arr];
+            const result = [];
+            for (let i = 0; i < arr.length; i++) {
+                const current = arr[i];
+                const remaining = arr.slice(0, i).concat(arr.slice(i + 1));
+                const remainingPerms = getPermutations(remaining);
+                for (let perm of remainingPerms) {
+                    result.push([current].concat(perm));
+                }
+            }
+            return result;
+        }
+
+        // Show hint
+        function showHint() {
+            const solutionsDiv = document.getElementById('solutionsDiv');
+
+            if (allSolutions.length === 0) {
+                solutionsDiv.innerHTML = '<h3>😢 本题无解</h3><p>这四个数字无法通过四则运算得到24。点击"新游戏"试试其他数字吧！</p>';
+            } else {
+                let html = '<h3>💡 参考答案</h3><ul>';
+                // Show up to 10 solutions
+                const displaySolutions = allSolutions.slice(0, 10);
+                displaySolutions.forEach(sol => {
+                    html += `<li>${sol} = 24</li>`;
+                });
+                if (allSolutions.length > 10) {
+                    html += `<li>...还有 ${allSolutions.length - 10} 个解法</li>`;
+                }
+                html += '</ul>';
+                solutionsDiv.innerHTML = html;
+            }
+
+            solutionsDiv.style.display = 'block';
+        }
+
+        // New game
+        function newGame() {
+            clearExpression();
+            dealCards();
+        }
+
+        // Start first game
+        newGame();
+    </script>
+</body>
+
+</html>
