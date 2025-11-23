@@ -11,7 +11,7 @@ Transformed the cards from a complex 3D design to a clean, minimalist aesthetic:
 - Added smooth scale transitions on hover
 - Improved readability with cleaner typography
 
-![Minimalist cards with clean design](/Users/ajzhang/.gemini/antigravity/brain/207b80f0-9700-4fe7-bab3-9082167d719e/encouraging_popup_1763862159316.png)
+![Minimalist cards with clean design](media/encouraging_popup_1763862159316.png)
 
 ### 2. **Encouraging Popup Messages**
 Added motivational feedback when users click the hint button:
@@ -27,14 +27,14 @@ Improved the success celebration with fireworks that launch from the bottom:
 - Colorful particle effects with realistic physics
 - Smooth animations with proper timing
 
-![Fireworks celebration launching from bottom](/Users/ajzhang/.gemini/antigravity/brain/207b80f0-9700-4fe7-bab3-9082167d719e/fireworks_final_1763862280550.png)
+![Fireworks celebration launching from bottom](media/fireworks_final_1763862280550.png)
 
 ## Testing & Verification
 
 ### Complete Game Flow
 I tested the entire game flow to ensure all features work correctly:
 
-![Complete game demonstration](/Users/ajzhang/.gemini/antigravity/brain/207b80f0-9700-4fe7-bab3-9082167d719e/fireworks_demo_1763862195710.webp)
+![Complete game demonstration](media/fireworks_demo_1763862195710.webp)
 
 The recording above demonstrates:
 1. Starting a new game
