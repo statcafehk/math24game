@@ -45,7 +45,7 @@ python3 -m http.server 8000
 
 The game is deployed on GitHub Pages:
 
-🎮 [在线游玩 / Play Online](https://[your-username].github.io/math24game/)
+🎮 [在线游玩 / Play Online](https://statcafehk.github.io/math24game/)
 
 ## 技术栈 / Tech Stack
 
