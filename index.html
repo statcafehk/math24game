@@ -280,6 +280,27 @@
             border-radius: 8px;
         }
 
+        /* Footer area: timer, score, reset button */
+        .game-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .footer-item {
+            flex: 1 1 0;
+            text-align: center;
+        }
+
+        .footer-item.left { text-align: left; }
+        .footer-item.center { text-align: center; }
+        .footer-item.right { text-align: right; }
+
+        .score-value { font-size: 1.6em; font-weight: 700; color: #2b7be4; }
+        .timer-value { font-size: 1.2em; font-weight: 700; color: #2b7be4; }
+
         .stat-item {
             text-align: center;
         }
@@ -472,8 +493,18 @@
             </div>
         </div>
 
-        <div style="text-align:center; margin-top: 1.25rem;">
-            <button class="btn btn-secondary" onclick="resetAll()">♻️ 重开一局</button>
+        <div class="game-footer">
+            <div class="footer-item left">
+                <div class="timer-label">计时</div>
+                <div id="timer" class="timer-value">00:00</div>
+            </div>
+            <div class="footer-item center">
+                <div class="score-label">积分</div>
+                <div id="score" class="score-value">0</div>
+            </div>
+            <div class="footer-item right">
+                <button class="btn btn-secondary" onclick="resetAll()">♻️ 重开一局</button>
+            </div>
         </div>
     </div>
 
@@ -485,11 +516,32 @@
         let attemptCount = parseInt(localStorage.getItem('attemptCount') || '0');
         let allSolutions = [];
         let hintCount = parseInt(localStorage.getItem('hintCount') || '0');
+        let score = parseInt(localStorage.getItem('score') || '0');
+        let timerStart = parseInt(localStorage.getItem('timerStart') || '0');
+        let timerInterval = null;
 
         // Initialize game
         document.getElementById('solvedCount').textContent = solvedCount;
         document.getElementById('attemptCount').textContent = attemptCount;
         document.getElementById('hintCount').textContent = hintCount;
+        document.getElementById('score').textContent = score;
+
+        // Start timer if timerStart exists
+        function startTimerFrom(ts) {
+            if (timerInterval) clearInterval(timerInterval);
+            timerStart = ts || Date.now();
+            localStorage.setItem('timerStart', timerStart);
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+                const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                const ss = String(elapsed % 60).padStart(2, '0');
+                document.getElementById('timer').textContent = `${mm}:${ss}`;
+            }, 1000);
+        }
+
+        if (timerStart && timerStart > 0) {
+            startTimerFrom(timerStart);
+        }
 
         // Create SVG card (minimalist design)
         function createCard(number) {
@@ -744,53 +796,59 @@
             overlay.className = 'animation-overlay fireworks-overlay';
             document.body.appendChild(overlay);
 
-            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#ff1493'];
+            const colors = ['#ff4d4f', '#52c41a', '#1677ff', '#fadb14', '#eb2f96', '#13c2c2', '#ffa940', '#fa8c16'];
 
-            // Create fireworks launching from bottom
-            for (let f = 0; f < 8; f++) {
+            // Create fireworks launching from bottom (more particles, larger size)
+            for (let f = 0; f < 10; f++) {
                 setTimeout(() => {
                     const startX = Math.random() * window.innerWidth;
                     const startY = window.innerHeight;
-                    const endY = Math.random() * (window.innerHeight * 0.4) + 100;
+                    const endY = Math.random() * (window.innerHeight * 0.5) + 80;
                     const color = colors[Math.floor(Math.random() * colors.length)];
 
-                    // Create rising particle
+                    // Create rising particle (larger)
                     const riser = document.createElement('div');
                     riser.className = 'firework';
+                    riser.style.width = '12px';
+                    riser.style.height = '12px';
                     riser.style.left = startX + 'px';
                     riser.style.top = startY + 'px';
                     riser.style.backgroundColor = color;
-                    riser.style.animation = 'fireworkRise 0.8s ease-out forwards';
+                    riser.style.borderRadius = '50%';
+                    riser.style.animation = 'fireworkRise 0.9s ease-out forwards';
                     overlay.appendChild(riser);
 
-                    // Create explosion at the end
+                    // Create explosion at the end with more particles and larger spread
                     setTimeout(() => {
-                        for (let i = 0; i < 40; i++) {
+                        const particles = 70;
+                        for (let i = 0; i < particles; i++) {
                             const particle = document.createElement('div');
                             particle.className = 'firework';
+                            particle.style.width = '10px';
+                            particle.style.height = '10px';
                             particle.style.left = startX + 'px';
                             particle.style.top = endY + 'px';
                             particle.style.backgroundColor = color;
 
-                            const angle = (Math.PI * 2 * i) / 40;
-                            const velocity = 80 + Math.random() * 120;
+                            const angle = (Math.PI * 2 * i) / particles;
+                            const velocity = 140 + Math.random() * 160;
                             const tx = Math.cos(angle) * velocity;
                             const ty = Math.sin(angle) * velocity;
 
                             particle.style.setProperty('--tx', tx + 'px');
                             particle.style.setProperty('--ty', ty + 'px');
-                            particle.style.animation = 'explode 1.2s ease-out forwards';
+                            particle.style.animation = 'explode 1.4s ease-out forwards';
 
                             overlay.appendChild(particle);
                         }
-                    }, 800);
-                }, f * 150);
+                    }, 900);
+                }, f * 120);
             }
 
             // Remove overlay after animation
             setTimeout(() => {
-                document.body.removeChild(overlay);
-            }, 3000);
+                if (document.body.contains(overlay)) document.body.removeChild(overlay);
+            }, 4000);
         }
 
         // Show encouraging popup
@@ -892,10 +950,19 @@
         function showHint() {
             const solutionsDiv = document.getElementById('solutionsDiv');
 
-            // Track hint usage
+            // Track hint usage (counts as a wrong attempt)
             hintCount++;
             localStorage.setItem('hintCount', hintCount);
             document.getElementById('hintCount').textContent = hintCount;
+
+            // Viewing hint counts as a wrong attempt: increment attemptCount and deduct score
+            attemptCount++;
+            localStorage.setItem('attemptCount', attemptCount);
+            document.getElementById('attemptCount').textContent = attemptCount;
+
+            score -= 1;
+            localStorage.setItem('score', score);
+            document.getElementById('score').textContent = score;
 
             if (allSolutions.length === 0) {
                 solutionsDiv.innerHTML = '<h3>😢 本题无解</h3><p>这四个数字无法通过四则运算得到24。点击"新游戏"试试其他数字吧！</p>';
@@ -930,12 +997,20 @@
                 solvedCount++;
                 localStorage.setItem('solvedCount', solvedCount);
                 document.getElementById('solvedCount').textContent = solvedCount;
+                // Award points for correctly identifying unsolvable
+                score += 3;
+                localStorage.setItem('score', score);
+                document.getElementById('score').textContent = score;
 
-                showMessage('✔️ 已标记：本题无解（确认），已计入已解决。', 'success');
+                showMessage('✔️ 已标记：本题无解（确认），已计入已解决。得分 +3', 'success');
                 solutionsDiv.style.display = 'none';
             } else {
-                // There are solutions: do not increment solvedCount, but inform the user
-                showMessage(`⚠️ 本题有解（共 ${allSolutions.length} 个），已记录为一次尝试。`, 'error');
+                // There are solutions: do not increment solvedCount, but deduct points for incorrect mark
+                score -= 1;
+                localStorage.setItem('score', score);
+                document.getElementById('score').textContent = score;
+
+                showMessage(`⚠️ 本题有解（共 ${allSolutions.length} 个），已记录为一次尝试，扣分 -1。`, 'error');
                 // show a few solutions so user can review
                 let html = '<h3>⚠️ 系统检测到解法</h3><ul>';
                 const displaySolutions = allSolutions.slice(0, 5);
