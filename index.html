@@ -845,7 +845,7 @@
                 showMessage('表达式有误，请检查！', 'error');
                 showEncouragePopup('表达式有误，请检查！');
             } else if (Math.abs(result - 24) < 0.0001) {
-                showMessage(`🎉 恭喜！答案正确！${currentExpression} = 24`, 'success');
+                showMessage(`🎉 恭喜！答案正确！${currentExpression} = 24。喜提 +3 分！`, 'success');
                 solvedCount++;
                 localStorage.setItem('solvedCount', solvedCount);
                 document.getElementById('solvedCount').textContent = solvedCount;
