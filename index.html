@@ -555,8 +555,8 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-secondary" onclick="markNoSolution()">🚫 此题无解</button>
-                <button class="btn btn-warning" id="hintBtn" onclick="showHint()">💡 查看提示</button>
+                <button id="markBtn" class="btn btn-secondary" onclick="markNoSolution()">🚫 此题无解</button>
+                <button id="hintBtn" class="btn btn-warning" onclick="showHint()">💡 查看提示</button>
                 <button class="btn btn-danger" onclick="newGame()">🔄 新游戏</button>
             </div>
         </div>
@@ -1069,6 +1069,10 @@
             }
 
             solutionsDiv.style.display = 'block';
+
+            // Disable hint button after use for this puzzle (allow only one click per puzzle)
+            const hintBtnEl = document.getElementById('hintBtn');
+            if (hintBtnEl) hintBtnEl.disabled = true;
         }
 
         // Mark current puzzle as 'no solution' (无解) -- verifies then updates stats
@@ -1107,6 +1111,10 @@
                 solutionsDiv.innerHTML = html;
                 solutionsDiv.style.display = 'block';
             }
+
+            // Disable mark button after use for this puzzle (allow only one click per puzzle)
+            const markBtnEl = document.getElementById('markBtn');
+            if (markBtnEl) markBtnEl.disabled = true;
         }
 
         // 重开一局: clear local counters, reset score, start timer and start fresh
@@ -1137,6 +1145,14 @@
             // Also clear any game-specific cached state if present
             try { localStorage.removeItem('math24game_state'); } catch (e) {}
 
+            // Re-enable interactive buttons for the new puzzle
+            const confirmBtn = document.querySelector('.btn-confirm');
+            if (confirmBtn) confirmBtn.disabled = false;
+            const hintBtnEl = document.getElementById('hintBtn');
+            if (hintBtnEl) hintBtnEl.disabled = false;
+            const markBtnEl = document.getElementById('markBtn');
+            if (markBtnEl) markBtnEl.disabled = false;
+
             newGame();
             showMessage('已重开一局并清除本地缓存（计时已开始，积分已清零）', 'success');
         }
@@ -1145,9 +1161,13 @@
         function newGame() {
             clearExpression();
             dealCards();
-            // Re-enable the confirm button for the new puzzle
+            // Re-enable the confirm/hint/mark buttons for the new puzzle
             const confirmBtn = document.querySelector('.btn-confirm');
             if (confirmBtn) confirmBtn.disabled = false;
+            const hintBtnEl = document.getElementById('hintBtn');
+            if (hintBtnEl) hintBtnEl.disabled = false;
+            const markBtnEl = document.getElementById('markBtn');
+            if (markBtnEl) markBtnEl.disabled = false;
         }
 
         // Start first game
