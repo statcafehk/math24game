@@ -860,6 +860,11 @@
             } else {
                 showMessage(`❌ 结果是 ${result.toFixed(2)}，不等于 24。继续努力！`, 'error');
                 showEncouragePopup(`结果是 ${result.toFixed(2)}，不等于 24`);
+
+                // Deduct 1 point for wrong answer (allow negative score)
+                score -= 1;
+                localStorage.setItem('score', score);
+                document.getElementById('score').textContent = score;
             }
         }
 
