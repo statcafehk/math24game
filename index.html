@@ -141,6 +141,14 @@
             min-width: 50px;
         }
 
+        /* Larger visual size for the operator symbols + - × ÷ */
+        .operator-btn.op-symbol {
+            font-size: 1.8em;
+            padding: 14px 18px;
+            min-width: 64px;
+            line-height: 1;
+        }
+
         .operator-btn:hover {
             transform: scale(1.1);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
@@ -431,17 +439,19 @@
             <div class="operators">
                 <button class="operator-btn" onclick="addOperator('(')">(</button>
                 <button class="operator-btn" onclick="addOperator(')')">)</button>
-                <button class="operator-btn" onclick="addOperator('+')">+</button>
-                <button class="operator-btn" onclick="addOperator('-')">−</button>
-                <button class="operator-btn" onclick="addOperator('*')">×</button>
-                <button class="operator-btn" onclick="addOperator('/')">÷</button>
+                <button class="operator-btn op-symbol" onclick="addOperator('+')">+</button>
+                <button class="operator-btn op-symbol" onclick="addOperator('-')">−</button>
+                <button class="operator-btn op-symbol" onclick="addOperator('*')">×</button>
+                <button class="operator-btn op-symbol" onclick="addOperator('/')">÷</button>
                 <button class="operator-btn" onclick="backspace()">⌫</button>
                 <button class="operator-btn" onclick="clearExpression()">清空</button>
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-warning" onclick="showHint()">💡 查看提示</button>
+                <button class="btn btn-warning" id="hintBtn" onclick="showHint()">💡 查看提示</button>
+                <button class="btn btn-secondary" onclick="markNoSolution()">❌ 无解</button>
                 <button class="btn btn-danger" onclick="newGame()">🔄 新游戏</button>
+                <button class="btn btn-secondary" onclick="resetAll()">♻️ 重开一局</button>
             </div>
         </div>
 
@@ -457,6 +467,10 @@
                 <div class="stat-value" id="attemptCount">0</div>
                 <div class="stat-label">尝试次数</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-value" id="hintCount">0</div>
+                <div class="stat-label">查看提示</div>
+            </div>
         </div>
     </div>
 
@@ -467,10 +481,12 @@
         let solvedCount = parseInt(localStorage.getItem('solvedCount') || '0');
         let attemptCount = parseInt(localStorage.getItem('attemptCount') || '0');
         let allSolutions = [];
+        let hintCount = parseInt(localStorage.getItem('hintCount') || '0');
 
         // Initialize game
         document.getElementById('solvedCount').textContent = solvedCount;
         document.getElementById('attemptCount').textContent = attemptCount;
+        document.getElementById('hintCount').textContent = hintCount;
 
         // Create SVG card (minimalist design)
         function createCard(number) {
@@ -873,6 +889,11 @@
         function showHint() {
             const solutionsDiv = document.getElementById('solutionsDiv');
 
+            // Track hint usage
+            hintCount++;
+            localStorage.setItem('hintCount', hintCount);
+            document.getElementById('hintCount').textContent = hintCount;
+
             if (allSolutions.length === 0) {
                 solutionsDiv.innerHTML = '<h3>😢 本题无解</h3><p>这四个数字无法通过四则运算得到24。点击"新游戏"试试其他数字吧！</p>';
             } else {
@@ -890,6 +911,42 @@
             }
 
             solutionsDiv.style.display = 'block';
+        }
+
+        // Mark current puzzle as 'no solution' (无解) -- verifies then notifies
+        function markNoSolution() {
+            const solutionsDiv = document.getElementById('solutionsDiv');
+            if (allSolutions.length === 0) {
+                showMessage('✔️ 已标记：本题无解（确认）', 'success');
+                solutionsDiv.style.display = 'none';
+            } else {
+                showMessage(`⚠️ 本题有解（共 ${allSolutions.length} 个），请检查提示。`, 'error');
+                // show a few solutions so user can review
+                let html = '<h3>⚠️ 系统检测到解法</h3><ul>';
+                const displaySolutions = allSolutions.slice(0, 5);
+                displaySolutions.forEach(sol => { html += `<li>${sol} = 24</li>`; });
+                html += '</ul>';
+                solutionsDiv.innerHTML = html;
+                solutionsDiv.style.display = 'block';
+            }
+        }
+
+        // 重开一局: clear local counters and start fresh
+        function resetAll() {
+            if (!confirm('确定要重开一局并清除本地统计与缓存吗？')) return;
+            localStorage.removeItem('solvedCount');
+            localStorage.removeItem('attemptCount');
+            localStorage.removeItem('hintCount');
+            solvedCount = 0;
+            attemptCount = 0;
+            hintCount = 0;
+            document.getElementById('solvedCount').textContent = solvedCount;
+            document.getElementById('attemptCount').textContent = attemptCount;
+            document.getElementById('hintCount').textContent = hintCount;
+            // Also clear any game-specific cached state if present
+            try { localStorage.removeItem('math24game_state'); } catch (e) {}
+            newGame();
+            showMessage('已重开一局并清除本地缓存', 'success');
         }
 
         // New game
