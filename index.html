@@ -119,6 +119,12 @@
             transform: scale(0.95);
         }
 
+        .btn-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .operators {
             display: flex;
             gap: 10px;
@@ -839,6 +845,10 @@
             localStorage.setItem('attemptCount', attemptCount);
             document.getElementById('attemptCount').textContent = attemptCount;
 
+            // Disable the confirm button to prevent repeated submissions for the same puzzle
+            const confirmBtn = document.querySelector('.btn-confirm');
+            if (confirmBtn) confirmBtn.disabled = true;
+
             const result = evaluateExpression(currentExpression);
 
             if (result === null) {
@@ -1135,6 +1145,9 @@
         function newGame() {
             clearExpression();
             dealCards();
+            // Re-enable the confirm button for the new puzzle
+            const confirmBtn = document.querySelector('.btn-confirm');
+            if (confirmBtn) confirmBtn.disabled = false;
         }
 
         // Start first game
