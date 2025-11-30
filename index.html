@@ -445,13 +445,12 @@
                 <button class="operator-btn op-symbol" onclick="addOperator('/')">÷</button>
                 <button class="operator-btn" onclick="backspace()">⌫</button>
                 <button class="operator-btn" onclick="clearExpression()">清空</button>
+                <button class="operator-btn" onclick="markNoSolution()">❌ 无解</button>
             </div>
 
             <div class="action-buttons">
                 <button class="btn btn-warning" id="hintBtn" onclick="showHint()">💡 查看提示</button>
-                <button class="btn btn-secondary" onclick="markNoSolution()">❌ 无解</button>
                 <button class="btn btn-danger" onclick="newGame()">🔄 新游戏</button>
-                <button class="btn btn-secondary" onclick="resetAll()">♻️ 重开一局</button>
             </div>
         </div>
 
@@ -471,6 +470,10 @@
                 <div class="stat-value" id="hintCount">0</div>
                 <div class="stat-label">查看提示</div>
             </div>
+        </div>
+
+        <div style="text-align:center; margin-top: 1.25rem;">
+            <button class="btn btn-secondary" onclick="resetAll()">♻️ 重开一局</button>
         </div>
     </div>
 
@@ -913,14 +916,26 @@
             solutionsDiv.style.display = 'block';
         }
 
-        // Mark current puzzle as 'no solution' (无解) -- verifies then notifies
+        // Mark current puzzle as 'no solution' (无解) -- verifies then updates stats
         function markNoSolution() {
             const solutionsDiv = document.getElementById('solutionsDiv');
+
+            // Always count this as an attempt
+            attemptCount++;
+            localStorage.setItem('attemptCount', attemptCount);
+            document.getElementById('attemptCount').textContent = attemptCount;
+
             if (allSolutions.length === 0) {
-                showMessage('✔️ 已标记：本题无解（确认）', 'success');
+                // Truly no solution: increment solvedCount as user marked it correctly
+                solvedCount++;
+                localStorage.setItem('solvedCount', solvedCount);
+                document.getElementById('solvedCount').textContent = solvedCount;
+
+                showMessage('✔️ 已标记：本题无解（确认），已计入已解决。', 'success');
                 solutionsDiv.style.display = 'none';
             } else {
-                showMessage(`⚠️ 本题有解（共 ${allSolutions.length} 个），请检查提示。`, 'error');
+                // There are solutions: do not increment solvedCount, but inform the user
+                showMessage(`⚠️ 本题有解（共 ${allSolutions.length} 个），已记录为一次尝试。`, 'error');
                 // show a few solutions so user can review
                 let html = '<h3>⚠️ 系统检测到解法</h3><ul>';
                 const displaySolutions = allSolutions.slice(0, 5);
